@@ -19,6 +19,9 @@ public class HTTPRequestHandler {
 
     private HttpRequest request;
 
+    /**
+     * Initialize the request handler
+     */
     public HTTPRequestHandler() {
         charsetEncoder = Charset.forName("UTF-8").newEncoder();
         buffer = ByteBuffer.allocate(4096);
@@ -26,6 +29,12 @@ public class HTTPRequestHandler {
         mark = 0;
     }
 
+    /**
+     * Process the request
+     *
+     * @param selectionKey selectionKey
+     * @throws IOException
+     */
     public void processRequestHeader(SelectionKey selectionKey) throws IOException {
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
         readBuffer(socketChannel);
@@ -33,9 +42,11 @@ public class HTTPRequestHandler {
         String requestLine = null;
         while ((line = getLine()) != null) {
             if (requestLine == null) {
+                /* Get the request line (Method + path + version) */
                 requestLine = line;
             }
         }
+        assert requestLine != null;
         String[] lineToken = requestLine.replace("\r\n", "").split(" ");
         HttpRequest request = new HttpRequest();
         request.setMethod(lineToken[0]);
@@ -43,10 +54,15 @@ public class HTTPRequestHandler {
         request.setVersion(lineToken[2]);
         setRequest(request);
 
-        // write the next round
+        /* write for next round */
         selectionKey.interestOps(SelectionKey.OP_WRITE);
     }
 
+    /**
+     * Read lines from buffer
+     *
+     * @return
+     */
     private String getLine() {
         StringBuilder sb = new StringBuilder();
         char tmp = ' ';
@@ -63,6 +79,7 @@ public class HTTPRequestHandler {
         return null;
     }
 
+    /* Read raw request and write to buffer */
     private void readBuffer(SocketChannel socketChannel) throws IOException {
         int capacity = buffer.capacity();
         buffer.limit(capacity);
@@ -74,6 +91,13 @@ public class HTTPRequestHandler {
         buffer.position(mark);
     }
 
+    /**
+     * Send response
+     *
+     * @param socketChannel
+     * @param response
+     * @throws IOException
+     */
     public void sendResponse(SocketChannel socketChannel, HttpResponse response) throws IOException {
         String statusLine = response.getVersion() + " " + response.getCode() + " " + response.getReason();
         writeLine(socketChannel, statusLine);

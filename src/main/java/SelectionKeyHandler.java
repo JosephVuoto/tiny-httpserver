@@ -1,6 +1,13 @@
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.*;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 /**
  * @author Yangzhe Xie
@@ -11,10 +18,18 @@ public class SelectionKeyHandler {
 
     private final Selector selector;
 
+    private final Logger logger = Logger.getLogger(SelectionKeyHandler.class);
+
     public SelectionKeyHandler(Selector selector) {
         this.selector = selector;
     }
 
+    /**
+     * Handle selectionKeys
+     *
+     * @param selectionKey
+     * @throws IOException
+     */
     public void handleSelectionKeyCommand(SelectionKey selectionKey) throws IOException {
         if (selectionKey.isAcceptable()) {
             handleAcceptableCommand(selectionKey);
@@ -25,6 +40,12 @@ public class SelectionKeyHandler {
         }
     }
 
+    /**
+     * Handle acceptable selectionKeys
+     *
+     * @param selectionKey
+     * @throws IOException
+     */
     private void handleAcceptableCommand(SelectionKey selectionKey) throws IOException {
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
         SocketChannel socketChannel = serverSocketChannel.accept();
@@ -35,6 +56,12 @@ public class SelectionKeyHandler {
         socketChannel.register(selector, SelectionKey.OP_READ);
     }
 
+    /**
+     * Handle readble selectionKeys
+     *
+     * @param selectionKey
+     * @throws IOException
+     */
     private void handleReadableCommand(SelectionKey selectionKey) throws IOException {
         HTTPRequestHandler requestHandler = (HTTPRequestHandler) selectionKey.attachment();
         if (requestHandler == null) {
@@ -50,18 +77,27 @@ public class SelectionKeyHandler {
         }
     }
 
+    /**
+     * Handle writable selectionKeys
+     *
+     * @param selectionKey
+     * @throws IOException
+     */
     private void handleWritableCommand(SelectionKey selectionKey) throws IOException {
         HTTPRequestHandler requestHandler = (HTTPRequestHandler) selectionKey.attachment();
         if (requestHandler == null) {
             throw new IOException("Response not ready");
         }
-        System.out.println(requestHandler.getRequest());
+        logger.info(requestHandler.getRequest());
         HttpResponse response = HttpResponse.getDefaultInstance();
 
         try {
             String path = requestHandler.getRequest().getPath();
+            if ("/".equals(path)) {
+                path = "/index.html";
+            }
             File file = new File(Config.WWWROOT, path);
-            FileInputStream in =new FileInputStream(file);
+            FileInputStream in = new FileInputStream(file);
             byte[] data = new byte[in.available()];
             in.read(data);
             in.close();
