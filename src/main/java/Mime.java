@@ -7,6 +7,7 @@ public class Mime {
     static {
         mimes = new HashMap<String, String>();
         mimes.put("doc", "application/msword");
+        mimes.put("pdf", "application/pdf");
         mimes.put("exe", "application/octet-stream");
         mimes.put("js", "application/javascript");
         mimes.put("zip", "application/zip");

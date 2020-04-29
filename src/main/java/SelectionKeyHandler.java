@@ -84,35 +84,37 @@ public class SelectionKeyHandler {
      * @throws IOException
      */
     private void handleWritableCommand(SelectionKey selectionKey) throws IOException {
-        HTTPRequestHandler requestHandler = (HTTPRequestHandler) selectionKey.attachment();
-        if (requestHandler == null) {
-            throw new IOException("Response not ready");
-        }
-        logger.info(requestHandler.getRequest());
-        HttpResponse response = HttpResponse.getDefaultInstance();
-
-        try {
-            String path = requestHandler.getRequest().getPath();
-            if ("/".equals(path)) {
-                path = "/index.html";
-            }
-            File file = new File(Config.WWWROOT, path);
-            FileInputStream in = new FileInputStream(file);
-            byte[] data = new byte[in.available()];
-            in.read(data);
-            in.close();
-            String extensionName = path.substring(path.lastIndexOf(".") + 1);
-            response.addHeader("Content-Type: ", Mime.get(extensionName));
-            response.setContent(data);
-        } catch (FileNotFoundException e) {
-            response.setCode("404");
-            response.setReason("Not Found");
-            response.setContent("404 Not Found.".getBytes());
-            response.addHeader("Content-Type: ", "text/html");
-        }
-
-        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-        requestHandler.sendResponse(socketChannel, response);
+        ThreadPool.getInstance().execute(new WritableCommandWorker(selectionKey));
         selectionKey.interestOps(SelectionKey.OP_READ);
+//        HTTPRequestHandler requestHandler = (HTTPRequestHandler) selectionKey.attachment();
+//        if (requestHandler == null) {
+//            throw new IOException("Response not ready");
+//        }
+//        logger.info(requestHandler.getRequest());
+//        HttpResponse response = HttpResponse.getDefaultInstance();
+//
+//        try {
+//            String path = requestHandler.getRequest().getPath();
+//            if ("/".equals(path)) {
+//                path = "/index.html";
+//            }
+//            File file = new File(Config.WWWROOT, path);
+//            FileInputStream in = new FileInputStream(file);
+//            byte[] data = new byte[in.available()];
+//            in.read(data);
+//            in.close();
+//            String extensionName = path.substring(path.lastIndexOf(".") + 1);
+//            response.addHeader("Content-Type: ", Mime.get(extensionName));
+//            response.setContent(data);
+//        } catch (FileNotFoundException e) {
+//            response.setCode("404");
+//            response.setReason("Not Found");
+//            response.setContent("404 Not Found.".getBytes());
+//            response.addHeader("Content-Type: ", "text/html");
+//        }
+//
+//        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+//        requestHandler.sendResponse(socketChannel, response);
+//        selectionKey.interestOps(SelectionKey.OP_READ);
     }
 }

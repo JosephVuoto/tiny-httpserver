@@ -108,8 +108,15 @@ public class HTTPRequestHandler {
             writeLine(socketChannel, key + ": " + value);
         }
         writeLine(socketChannel);
-        ByteBuffer byteBuffer = ByteBuffer.wrap(response.getContent());
-        socketChannel.write(byteBuffer);
+//        ByteBuffer byteBuffer = ByteBuffer.wrap(response.getContent());
+//        socketChannel.write(byteBuffer);
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(52428800);
+        byteBuffer.put(response.getContent());
+        byteBuffer.flip();
+        while(byteBuffer.hasRemaining()){
+            socketChannel.write(byteBuffer);
+        }
+        byteBuffer.clear();
     }
 
     private void writeLine(SocketChannel socketChannel) throws IOException {
