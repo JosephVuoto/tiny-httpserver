@@ -13,9 +13,9 @@ import java.util.Set;
  * @date 28/4/20
  */
 public class HttpServer {
+    private final InetSocketAddress inetSocketAddress;
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
-    private final InetSocketAddress inetSocketAddress;
     private SelectionKeyHandler selectionKeyHandler;
 
     public HttpServer(InetSocketAddress inetSocketAddress) {

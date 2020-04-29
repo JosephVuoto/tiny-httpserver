@@ -1,13 +1,12 @@
-import java.io.IOException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
 
 /**
  * @author Yangzhe Xie
  * @date 28/4/20
  */
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class SelectionKeyHandler {
 
     private final Selector selector;
@@ -56,8 +55,26 @@ public class SelectionKeyHandler {
         if (requestHandler == null) {
             throw new IOException("Response not ready");
         }
+        System.out.println(requestHandler.getRequest());
         HttpResponse response = HttpResponse.getDefaultInstance();
-        response.setContent("Hello World!".getBytes());
+
+        try {
+            String path = requestHandler.getRequest().getPath();
+            File file = new File(Config.WWWROOT, path);
+            FileInputStream in =new FileInputStream(file);
+            byte[] data = new byte[in.available()];
+            in.read(data);
+            in.close();
+            String extensionName = path.substring(path.lastIndexOf(".") + 1);
+            response.addHeader("Content-Type: ", Mime.get(extensionName));
+            response.setContent(data);
+        } catch (FileNotFoundException e) {
+            response.setCode("404");
+            response.setReason("Not Found");
+            response.setContent("404 Not Found.".getBytes());
+            response.addHeader("Content-Type: ", "text/html");
+        }
+
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
         requestHandler.sendResponse(socketChannel, response);
         selectionKey.interestOps(SelectionKey.OP_READ);

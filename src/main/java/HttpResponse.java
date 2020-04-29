@@ -29,44 +29,48 @@ public class HttpResponse {
         headers.put("Connection", "close");
     }
 
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public void setContent(byte[] content) {
-        this.content = content;
-        headers.put("Content-Length", Integer.toString(content.length));
-    }
-
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
+    public void addHeader(String key, String value) {
+        headers.put(key, value);
     }
 
     public String getVersion() {
         return version;
     }
 
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     public String getCode() {
         return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getReason() {
         return reason;
     }
 
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
     public Map<String, String> getHeaders() {
         return headers;
     }
 
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
+
     public byte[] getContent() {
         return content;
+    }
+
+    public void setContent(byte[] content) {
+        this.content = content;
+        headers.put("Content-Length", Integer.toString(content.length));
     }
 }

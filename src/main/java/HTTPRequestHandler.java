@@ -3,7 +3,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.Map;
@@ -13,15 +12,15 @@ import java.util.Map;
  * @date 28/4/20
  */
 public class HTTPRequestHandler {
-    private Charset charset;
-    private CharsetEncoder charsetEncoder;
-    private ByteBuffer buffer;
-    private StringBuilder content;
+    private final CharsetEncoder charsetEncoder;
+    private final ByteBuffer buffer;
+    private final StringBuilder content;
     private int mark;
 
+    private HttpRequest request;
+
     public HTTPRequestHandler() {
-        charset = Charset.forName("UTF-8");
-        charsetEncoder = charset.newEncoder();
+        charsetEncoder = Charset.forName("UTF-8").newEncoder();
         buffer = ByteBuffer.allocate(4096);
         content = new StringBuilder();
         mark = 0;
@@ -31,10 +30,19 @@ public class HTTPRequestHandler {
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
         readBuffer(socketChannel);
         String line;
+        String requestLine = null;
         while ((line = getLine()) != null) {
-            System.out.println(line);
-            //TODO: process request headers
+            if (requestLine == null) {
+                requestLine = line;
+            }
         }
+        String[] lineToken = requestLine.replace("\r\n", "").split(" ");
+        HttpRequest request = new HttpRequest();
+        request.setMethod(lineToken[0]);
+        request.setPath(lineToken[1]);
+        request.setVersion(lineToken[2]);
+        setRequest(request);
+
         // write the next round
         selectionKey.interestOps(SelectionKey.OP_WRITE);
     }
@@ -89,5 +97,13 @@ public class HTTPRequestHandler {
         ByteBuffer byteBuffer = charsetEncoder.encode(charBuffer);
 
         socketChannel.write(byteBuffer);
+    }
+
+    public HttpRequest getRequest() {
+        return request;
+    }
+
+    public void setRequest(HttpRequest request) {
+        this.request = request;
     }
 }
