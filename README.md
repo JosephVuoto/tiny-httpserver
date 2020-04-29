@@ -1,7 +1,7 @@
 # tiny-httpserver
 一个用Java NIO写的玩具HTTP服务器
 
-## 启动
+## 代码启动
 ``` java
     public static void main(String[] args) {
         InetSocketAddress address = new InetSocketAddress(Config.PORT);
@@ -13,6 +13,19 @@
             e.printStackTrace();
         }
     }
+```
+
+## 打包并运行
+### 打包
+```
+mvn clean
+mvn package
+```
+### 运行
+```
+java -jar HttpServerStarter.jar
+OR
+java -jar HttpServerStarter.jar <port> <www root path>
 ```
 
 ## 截图
